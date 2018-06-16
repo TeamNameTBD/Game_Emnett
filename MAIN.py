@@ -103,6 +103,22 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()   # kill command removes sprite from any groups
 
 
+# Background
+class BackgroundImg(pygame.sprite.Sprite):
+    def __init__(self):
+        self.groups = BG_sprite
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.image = pygame.transform.scale(pygame.image.load(path.join(Graphics_dir, "background.png")).convert(),
+                                            (720, 2160))
+        self.height = 2160
+        self.rect = self.image.get_rect()
+        self.rect.top = HEIGHT - self.height
+        self.rect.x = 0
+        self.speed = 10
+
+    def update(self):
+        self.rect.top += self.speed
+
 # initialize pygame and create a new window
 
 pygame.init()
@@ -114,12 +130,11 @@ clock = pygame.time.Clock()
 
 # Load all game graphics
 
-background = pygame.transform.scale(pygame.image.load(path.join(Graphics_dir, "background.png")).convert(), (720,1080))
-background_rect = background.get_rect()
 bullet_img = pygame.image.load(path.join(Graphics_dir, "laser1.png")).convert()
 # load all other images here (move the player ones here)
 
 all_sprites = pygame.sprite.Group()
+BG_sprite = pygame.sprite.Group()
 Enemies = pygame.sprite.Group()
 Bullets = pygame.sprite.Group()
 Ship = Ship() # make a player object appear
@@ -129,7 +144,7 @@ for i in range(8):
     all_sprites.add(E)
     Enemies.add(E)
 
-
+background = BackgroundImg()
 # Game Loop
 
 running = True
@@ -148,6 +163,7 @@ while running:
 
     # Update game loop
     all_sprites.update() # update sprites
+    BG_sprite.update()
 
     # check to see if a bullet hit a mob
     hits = pygame.sprite.groupcollide(Enemies, Bullets, True, True)
@@ -165,7 +181,8 @@ while running:
 
     # Draw / Render
     screen.fill(White)
-    screen.blit(background, background_rect) # copy the background onto the screen
+    # screen.blit(background, background_rect) # copy the background onto the screen
+    BG_sprite.draw(screen)
     all_sprites.draw(screen)
 
     # after drawing everything, flip the display
