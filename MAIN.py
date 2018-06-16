@@ -3,6 +3,10 @@
 import pygame
 import random
 import os
+from os import path
+
+Graphics_dir = path.join(path.dirname(__file__), 'Graphics')
+
 
 WIDTH = 720
 HEIGHT = 1080
@@ -29,6 +33,7 @@ class Ship(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(pygame.image.load(os.path.join(Graphics_folder, "1.png")), (60,60)) # what the sprite looks like, .convert() command caused image to break
         self.image.set_colorkey(Black)  # ignores background color of sprite if it exists
         self.rect = self.image.get_rect() # rectangle that encloses the sprite (hit box, etc.)
+        self.radius = 25
         self.rect.centerx = (WIDTH/2)
         self.rect.bottom = HEIGHT - 20
         self.speedx = 0
@@ -67,6 +72,7 @@ class ES1(pygame.sprite.Sprite):    # ES (ENEMY SHIP)
         self.image = pygame.transform.scale(pygame.image.load(os.path.join(Graphics_folder, "2.png")), (50, 50))
         self.image.set_colorkey(Black)  # ignores background color of sprite if it exists
         self.rect = self.image.get_rect() # rectangle that encloses the sprite (hit box, etc.)
+        self.radius = 20
         self.rect.x = random.randrange(280, 440) # random range starting position in X axis
         self.rect.y = random.randrange(-100, -40) # random range starting position in the Y axis (- is above screen)
         self.speedx = random.randrange(-3, 3) # define x speed
@@ -84,8 +90,8 @@ class ES1(pygame.sprite.Sprite):    # ES (ENEMY SHIP)
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((10, 20))
-        self.image.fill(Purple)
+        self.image = bullet_img
+        self.image.set_colorkey(Black)
         self.rect = self.image.get_rect()
         self.rect.bottom = y
         self.rect.centerx = x
@@ -104,6 +110,14 @@ pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("KILLOWATT")
 clock = pygame.time.Clock()
+
+
+# Load all game graphics
+
+background = pygame.transform.scale(pygame.image.load(path.join(Graphics_dir, "background.png")).convert(), (720,1080))
+background_rect = background.get_rect()
+bullet_img = pygame.image.load(path.join(Graphics_dir, "laser1.png")).convert()
+# load all other images here (move the player ones here)
 
 all_sprites = pygame.sprite.Group()
 Enemies = pygame.sprite.Group()
@@ -143,12 +157,15 @@ while running:
         Enemies.add(E)
 
     # check to see if player collision occurs
-    Collisions = pygame.sprite.spritecollide(Ship, Enemies, False) # defines collisions (player sprite, what you want to check hit the sprite, should the enemy the player hit be deleted?)
+    Collisions = pygame.sprite.spritecollide(Ship, Enemies, False, pygame.sprite.collide_circle) # defines collisions
+                # (player sprite, what you want to check hit the sprite, should the enemy the player hit be deleted?)
+                # Collide_circle causes it to collide based on circles
     if Collisions:
         running = False
 
     # Draw / Render
     screen.fill(White)
+    screen.blit(background, background_rect) # copy the background onto the screen
     all_sprites.draw(screen)
 
     # after drawing everything, flip the display
