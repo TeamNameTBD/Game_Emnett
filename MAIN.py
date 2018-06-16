@@ -119,6 +119,13 @@ class BackgroundImg(pygame.sprite.Sprite):
         self.speed = 10
 
     def update(self):
+        # Spawn new background if the image is at the end
+        if self.rect.top == 0:
+            BackgroundImg()
+        # Kill the background sprite after it goes off screen
+        if self.rect.top > HEIGHT:
+            self.kill()
+        # move screen every frame
         self.rect.top += self.speed
 
 # initialize pygame and create a new window
