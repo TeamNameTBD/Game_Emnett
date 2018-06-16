@@ -112,8 +112,10 @@ class BackgroundImg(pygame.sprite.Sprite):
                                             (720, 2160))
         self.height = 2160
         self.rect = self.image.get_rect()
+        # Spawn Background above the screen
         self.rect.top = HEIGHT - self.height
         self.rect.x = 0
+        # Scroll speed of background
         self.speed = 10
 
     def update(self):
