@@ -1,4 +1,6 @@
 # Raiden Clone
+# Music by SketchyLogic on OpenGameArt.Org
+# Art by
 
 import pygame
 import random
@@ -6,7 +8,7 @@ import os
 from os import path
 
 Graphics_dir = path.join(path.dirname(__file__), 'Graphics')
-
+snd_dir = path.join(path.dirname(__file__), 'snd')
 
 WIDTH = 720
 HEIGHT = 1080
@@ -25,6 +27,16 @@ Blue = (0, 0, 255)
 
 game_folder = os.path.dirname(__file__)
 Graphics_folder = os.path.join(game_folder, "Graphics")
+
+# Define new draw command that can be used anywhere in code
+
+font_name = pygame.font.match_font('arial') # searches target computer for a font that is close to specified name
+def draw_text(surf, text, size, x, y):
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, White) # True means text is anti-aliased
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
 
 # sprite for the Player Ship
 class Ship(pygame.sprite.Sprite):
@@ -64,7 +76,8 @@ class Ship(pygame.sprite.Sprite):
     def shoot(self):
         bullet = Bullet(self.rect.centerx, self.rect.top) # bullet shoot is defined here so that the bullet can use the player defined location to shoot from
         all_sprites.add(bullet)  # make sure to add to all_sprites group
-        Bullets.add(bullet  )
+        Bullets.add(bullet)
+        bullet_sound.play()
 
 class ES1(pygame.sprite.Sprite):    # ES (ENEMY SHIP)
     def __init__(self):
@@ -116,7 +129,7 @@ class BackgroundImg(pygame.sprite.Sprite):
         self.rect.top = HEIGHT - self.height
         self.rect.x = 0
         # Scroll speed of background
-        self.speed = 10
+        self.speed = 2
 
     def update(self):
         # Spawn new background if the image is at the end
@@ -139,8 +152,17 @@ clock = pygame.time.Clock()
 
 # Load all game graphics
 
-bullet_img = pygame.image.load(path.join(Graphics_dir, "laser1.png")).convert()
+bullet_img = pygame.transform.scale(pygame.image.load(path.join(Graphics_dir, "laser1.png")).convert(), (10, 20))
 # load all other images here (move the player ones here)
+
+# Load all game sounds
+
+bullet_sound = pygame.mixer.Sound(path.join(snd_dir, 'laser.wav'))
+expl_sounds = []
+for snd in ['Explosion.wav', 'Explosion2.wav']:
+    expl_sounds.append(pygame.mixer.Sound(path.join(snd_dir, snd))) # loading sounds and puting them in list above
+pygame.mixer.music.load(path.join(snd_dir, 'Mercury.wav'))
+pygame.mixer.music.set_volume(0.75)
 
 all_sprites = pygame.sprite.Group()
 BG_sprite = pygame.sprite.Group()
@@ -154,6 +176,12 @@ for i in range(8):
     Enemies.add(E)
 
 background = BackgroundImg()
+
+score = 0
+
+# start game music
+pygame.mixer.music.play(loops=-1) # loops=-1 loops the music constantly
+
 # Game Loop
 
 running = True
@@ -177,6 +205,8 @@ while running:
     # check to see if a bullet hit a mob
     hits = pygame.sprite.groupcollide(Enemies, Bullets, True, True)
     for hit in hits:
+        score += 1
+        random.choice(expl_sounds).play()
         E = ES1()
         all_sprites.add(E)
         Enemies.add(E)
@@ -190,10 +220,10 @@ while running:
 
     # Draw / Render
     screen.fill(White)
-    # screen.blit(background, background_rect) # copy the background onto the screen
+    # screen.blit(background, background_rect) # copy the background onto the screen (REPLACED WITH BACKGROUND SPRITE)
     BG_sprite.draw(screen)
     all_sprites.draw(screen)
-
+    draw_text(screen, str(score), 18, WIDTH / 2, 10)
     # after drawing everything, flip the display
     pygame.display.flip()
 
